@@ -1,26 +1,8 @@
-# Engineering Workspace
+# LoCo Docs
+This is the source code for FRC 5338's Wiki.js documentation system.
 
-This is an example of an engineering workspace. 
-If this is your first time coming to this workspace, you should start off in [Start Here](/notes/start-here.md) 
+The installation itself is vanilla, the only custom features are a python script which runs via a CRON job at midnight every day, in order to dynamically generate certain aspects of the docs, and to ping/email people.
 
-## Sections
 
-### [Start Here](/notes/start-here.md)
-
-Getting started with this workspace
-
-### [Development Process](/notes/dev.md)
-
-How code is written, reviewed, and shipped
-
-### [Packages](/notes/pkg.md)
-
-Software that the team is maintaining
-
-### [Projects](/notes/proj.md)
-
-Projects that your team is taking on 
-
-### [User](/notes/user.md)
-
-Individual hierarchies
+## contributers
+*project started by @ironon*
