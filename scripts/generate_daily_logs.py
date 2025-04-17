@@ -30,8 +30,8 @@ transport = RequestsHTTPTransport(url=WIKI_URL, headers=headers)
 client = Client(transport=transport, fetch_schema_from_transport=True)
 
 def overwrite_graphql_file(doc_id: int, path: str, title:str, markdown: str, tags=None):
-    txt = markdown + "\n\n\n*note: due to the presence of the `auto_overwrite` tag, every change manually made to this document will be overwritten once a day at midnight. Please remove the `auto_overwrite` tag if you wish to edit this page manually. However, if this tag is on a page, its probably on there for a reason, so consult a solftware member first.*" 
-    htmlMark = m.markdown(txt).replace("\n", "<br>")
+    txt = markdown + "\n\n\n*note: due to the presence of the `auto_overwrite` tag, every change manually made to this document will be overwritten once a day at midnight. Please remove the `auto_overwrite` tag if you wish to edit this page manually. However, if this tag is on a page, its probably on there for a reason, so consult a software member first.*" 
+    htmlMark = m.markdown(txt).replace("\n", "<br>").replace("\"", "\\\"")
     if tags is None:
         tags = []
     mutation = gql.gql("""
@@ -67,8 +67,33 @@ def overwrite_graphql_file(doc_id: int, path: str, title:str, markdown: str, tag
     except:
         return False
     return True
+def delete_graphql_file(doc_id: int):
+    mutation = gql.gql("""
+        mutation {
+            pages {
+                delete(
+                    id: {ID}
+                ) {
+                    responseResult {
+                        errorCode
+                        message
+                        slug
+                        succeeded
+                    }
+                }
+            }
+        }
+                       """.replace("{ID}", str(doc_id)))
+   
+    try:
+   
+        result = client.execute(mutation)
+        print(result)
+    except:
+        return False
+    return True
 def set_graphql_file(path: str, title:str, markdown: str, tags=None):
-    htmlMark = m.markdown(markdown).replace("\n", "<br>")
+    htmlMark = m.markdown(markdown).replace("\n", "<br>").replace("\"", "\\\"")
     if tags is None:
         tags = []
     mutation = gql.gql("""
@@ -168,13 +193,26 @@ def get_meetings():
     meetings.sort(key=lambda x: x["start"])
     return meetings
 
+def linkify(meetings,subteam:str):
+    meetings = list(map(lambda x: f"[{x}](/{subteam.lower()}/{x})", meetings))
+    string = "\n".join(meetings)
+    return string
 def generateSubteamFiles(meetings):
     for team in SUBTEAMS:
         
+        today = datetime.now().date()
+        a_month_in = today.replace(day=1) - timedelta(days=15)
+        a_month_out = today.replace(day=1) + timedelta(days=2)
+        filtered_meetings = [meeting for meeting in meetings if shouldDoMeeting(meeting)] 
+        recent_meetings = list(map(lambda x: f"{x["start"].date().strftime("%m-%d-%Y")}", [meeting for meeting in filtered_meetings if meeting["start"].date() <= a_month_out and meeting["start"].date() >= a_month_in]))
+        all_meetings = list(map(lambda x: f"{x["start"].date().strftime("%m-%d-%Y")}",filtered_meetings))
         SUBTEAM_PARAMETERS = {
             "subteam": team,
-            "last_generated_time": datetime.now().isoformat()
+            "last_generated_time": datetime.now().isoformat(),
+            "all_meetings": linkify(all_meetings, team),
+            "recent_meetings": linkify(recent_meetings, team),
         }
+        
         for file in os.scandir("./scripts/subteam_template"):
             existent_file = get_graphql_file(f"{team.lower()}/{file.name.replace(".md", "")}") 
             
@@ -217,8 +255,10 @@ def generateDailyLogs(meetings):
             "last_generated_time": datetime.now().isoformat()
         }
         today = datetime.now().date()
-        a_month_out = today.replace(day=1) + timedelta(days=31)
-        meetings_within_a_month = [meeting for meeting in meetings if meeting["start"].date() <= a_month_out and meeting["start"].date() >= today]
+        a_month_in = today.replace(day=1) - timedelta(days=15)
+        a_month_out = today.replace(day=1) + timedelta(days=2)
+        print(a_month_out)
+        meetings_within_a_month = [meeting for meeting in meetings if meeting["start"].date() <= a_month_out and meeting["start"].date() >= a_month_in]
         for meeting in meetings_within_a_month:
             if shouldDoMeeting(meeting):
                 template = read_document(f"{team.lower()}/daily_log_template")
@@ -236,10 +276,11 @@ def generateDailyLogs(meetings):
 
                 path = f"{team.lower()}/{meeting['start'].date().strftime('%m-%d-%Y')}"
                 print("daily log path: ", path)
+                # delete_graphql_file(get_graphql_file(path)["pages"]["singleByPath"]["id"]) ## used for deleting all daily logs
                 set_graphql_file(path, title, render)
 
 
-        return meetings_within_a_month
+    return meetings_within_a_month
 
 
 
