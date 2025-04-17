@@ -1,9 +1,0 @@
-version: 1
-imports: []
-schemas:
-  - id: user
-    children: []
-    title: user
-    parent: root
-    namespace: true
-    template: template.user
