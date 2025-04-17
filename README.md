@@ -6,4 +6,5 @@ The installation itself is vanilla, the only custom features are a python script
 
 ## contributers
 *project started by @ironon*
+
 i was gonna use dendron originally but switched off of it, which is why theres that random bit at the beginning of the commit history
