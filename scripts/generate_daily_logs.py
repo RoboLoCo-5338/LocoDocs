@@ -13,7 +13,8 @@ import arrow
 from gql import gql, Client, transport
 import gql
 import markdown as m
-
+import dotenv
+dotenv.load_dotenv()
 
 from trender import TRender
 import os
@@ -24,8 +25,8 @@ WIKI_URL = "http://localhost/graphql"
 from gql.transport.requests import RequestsHTTPTransport
 
 headers = {
-    "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOjMsImdycCI6MSwiaWF0IjoxNzQ0ODY3ODA4LCJleHAiOjE4Mzk1NDA2MDgsImF1ZCI6InVybjp3aWtpLmpzIiwiaXNzIjoidXJuOndpa2kuanMifQ.LPLaKPWy0u-2QK9GRZoYGuBBXWz2J9weTxy6sESyskMS_NbGRKTjKCZCByWG-8fohutqyC-J7ykqkxAvgUTUTNfYlVonQTV09zmTI-YPykkEb2tYjG5HZpDHNBHFBqNFMYHe9aTq4PKZO3LLyYD0SuUCdoh4srJffwrxYrnuTTvAiLdMMS1314fwHlLNOiOZjRlwFOhOQvJW2M6Kq_fEu6MymAniy8lCexSiBFDfTCsT0AQdiII1c8k4SPzRzxktbZsSpW66yXO1bPb2eV6O6pdXRrquX9pHDFzLtfTHRCxfx2QjsW_6AEyP4LkTRX9LagGrds6SQJK8TFONQMug7w"
-}
+    "Authorization": "Bearer " + os.getenv("WIKI_API_KEY")
+},
 transport = RequestsHTTPTransport(url=WIKI_URL, headers=headers)
 client = Client(transport=transport, fetch_schema_from_transport=True)
 
